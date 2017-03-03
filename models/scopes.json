@@ -1,0 +1,14 @@
+[
+  {
+    "id": "view_profile",
+    "explanation": "Accéder aux informations de mon profil"
+  },
+  {
+    "id": "modify_profile",
+    "explanation": "Modifier les éléments de mon profil"
+  },
+  {
+    "id": "meta",
+    "explanation": "Sauvegarder des informations propres à l'application sur votre profil"
+  }
+]

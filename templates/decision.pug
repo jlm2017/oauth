@@ -1,0 +1,19 @@
+extends layout.pug
+
+block head
+  title Autoriser l'application ?
+
+block content
+  h1 Demande d'autorisation
+
+  p L'application #{client.name} demande l'accès à votre compte. Elle souhaite pouvoir :
+
+  ul
+    each item in scope
+      li= item.explanation
+
+  form(method='POST' action='/autoriser/decision')
+    input(type='hidden' name='transaction_id' value=transactionID)
+
+    input(type='submit' value='Autoriser' id='allow')
+    input(type='submit' value='Refuser' id='deny' name='cancel')

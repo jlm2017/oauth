@@ -1,61 +1,51 @@
-const qs = require('qs');
+const {User} = require('./models/api');
+const {MailToken} = require('./models/tokens');
+const {sendMail} = require('./io/mail_transport');
+const messageCreator = require('./io/message_creator');
 
-const views = require('./views');
-const oauth = require('./oauth');
-
-const {getOauthParams} = oauth;
-const {mailForm} = views;
-
-exports.showForm = () => function showForm(req, res) {
-  const oauthParams = getOauthParams(req.query);
-
-  views.mailForm(res, {
+exports.showForm = function showForm(req, res) {
+  res.render('email_form', {
     action: 'email',
     previousEmail: '',
-    hidden: oauthParams,
   });
 };
 
-exports.validateForm = function({Token, User, messageCreator, sendMail}) {
-  return function validateForm(req, res) {
-    const {email} = req.body;
-    const oauthParams = getOauthParams(req.query, req.body);
+exports.validateForm = function validateForm(req, res) {
+  const {email} = req.body;
 
-    return User.findByEmail(email)
-      .then((user) => {
-        if (user === null) {
-          mailForm(res, {
-            action: 'email',
-            hidden: oauthParams,
-            error: 'Votre adresse email n\'est pas trouvée. Etes vous bien signataire ?'
+  return User.findByEmail(email)
+    .then((user) => {
+      if (user === null) {
+        res.render('email_form', {
+          action: 'email',
+          error: 'Votre adresse email n\'est pas trouvée. Etes vous bien signataire ?'
+        });
+      }
+      else {
+        const token = new MailToken(user.id);
+        return token.save()
+          .then((tok) => messageCreator(email, tok))
+          .then(sendMail)
+          .then(() => {
+            res.redirect('/email_envoye', 302);
+          })
+          .catch((err) => {
+            req.log.error('Error when handling', {err});
+            res.render('email_error', {err});
           });
-        }
-        else {
-          const token = new Token(email, oauthParams);
-          return token.save()
-            .then((tok) => messageCreator(email, tok))
-            .then(sendMail)
-            .then(() => {
-              res.redirect('/email_envoye', 302);
-            })
-            .catch((err) => {
-              req.log.error('Error when handling', {err});
-              views.mailError(res, err);
-            });
-        }
-      });
-  };
+      }
+    });
 };
 
-exports.handleConnection = () => function handleConnection(req, res) {
-  if (req.authInfo.oauthParams !== null) {
-    res.redirect(`/autoriser?${qs.stringify(req.authInfo.oauthParams)}`);
-  } else {
-    views.authenticationSuccess(res);
-  }
+exports.emailSent = function emailSent(req, res) {
+  res.render('email_sent');
 };
 
-exports.badLink = () => function badLink(req, res) {
-  views.linkError(res);
+exports.authenticationSuccess = function authenticationSuccess(req, res) {
+  res.render('authentication_success');
+};
+
+exports.badLink = function badLink(req, res) {
+  res.render('link_error');
 };
 

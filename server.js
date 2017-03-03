@@ -2,103 +2,72 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const session = require('express-session');
-const redis = require('redis');
 const RedisStore = require('connect-redis')(session);
-const Promise = require('bluebird');
 const expressBunyanLogger = require('express-bunyan-logger');
 const passport = require('passport');
-const BearerStrategy = require('passport-http-bearer');
+const {ensureLoggedIn} = require('connect-ensure-login');
 
-const get_template = require('./get_template');
-const mailTransport = require('./mail_transport');
-const tokens = require('./tokens');
-
-const {
-  SECRET,
-  PORT,
-  ENDPOINT,
-  SMTP_URL,
-  MAIL_TEMPLATE,
-  MAIL_FROM,
-  MAIL_SUBJECT,
-  API_ENDPOINT,
-  API_KEY
-} = process.env;
-
-// Promisify redis!
-Promise.promisifyAll(redis.RedisClient.prototype);
-Promise.promisifyAll(redis.Multi.prototype);
-
-const models = require('./models')(API_ENDPOINT, API_KEY);
 const controllers = require('./controllers');
-const messageCreator = require('./messageCreator')({
-  endpoint: ENDPOINT,
-  templateUrl: MAIL_TEMPLATE,
-  subject: MAIL_SUBJECT,
-  from: MAIL_FROM
-});
+const {verifySMTP} = require('./io/mail_transport');
 
+const redisClient = require('./io/redis_client');
+const oauthServer = require('./oauth_server');
 
-const redisClient = redis.createClient();
+const config = require('./config');
+
 const app = express();
-
-const {verifySMTP, sendMail} = mailTransport(SMTP_URL);
-const {MailToken} = tokens(redisClient);
 
 app.use(expressBunyanLogger());
 app.use(express.static('public'));
-app.use(cookieParser(SECRET));
+app.use(cookieParser(config.secret));
 app.use(bodyParser.urlencoded());
 app.use(session({
   store: new RedisStore({client: redisClient}),
-  secret: SECRET,
+  secret: config.secret,
   resave: false,
   saveUninitialized: false
 }));
 app.use(passport.initialize());
 app.use(passport.session());
 
+require('./auth');
+
 app.set('views', 'templates');
 app.set('view engine', 'pug');
 
-passport.use(new BearerStrategy(
-  function (token, cb) {
-    MailToken.findAndDelete(token)
-      .then(function (mailToken) {
-        if (mailToken === null) { return cb(null, false); }
-        return cb(null, mailToken.userId, {oauthParams: mailToken.oauthParams});
-      })
-      .catch((err) => {
-        cb(err);
-      });
-  }
-));
-
-passport.serializeUser(function(user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(function(user, done) {
-  done(null, user);
-});
-
 app.route('/email')
-  .get(controllers.showForm())
-  .post(controllers.validateForm({Token: MailToken, User: models.User, messageCreator, sendMail}));
+  .get(controllers.showForm)
+  .post(controllers.validateForm);
 
-app.get('/email_envoye', function (req, res) {
-  res.render('mail_sent');
-});
+app.get('/email_envoye', controllers.emailSent);
 
 app.get('/connexion',
-  passport.authenticate('bearer', {failureRedirect: '/lien_incorrect'}),
-  controllers.handleConnection()
+  passport.authenticate('mail_auth', {successReturnToOrRedirect: '/succes', failureRedirect: '/lien_incorrect'})
 );
 
-app.get('/lien_incorrect', controllers.badLink());
+app.get('/deconnexion', function (req, res) {
+  req.logout();
+  res.redirect('/email');
+});
+
+app.get('/succes', controllers.authenticationSuccess);
+
+app.get('/lien_incorrect', controllers.badLink);
+
+app.get('/',
+  ensureLoggedIn('/email'),
+  function (req, res) {
+    res.send('OK!');
+  }
+);
+
+app.get('/autoriser', oauthServer.authorize);
+app.post('/autoriser/decision', oauthServer.decision);
+
+app.post('/token', oauthServer.token);
 
 verifySMTP().then(function (verified) {
   if (verified) {
-    app.listen(PORT);
+    app.listen(config.port);
   }
 });
