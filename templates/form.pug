@@ -1,0 +1,18 @@
+doctype html
+html(lang="fr")
+  head
+    title Formulaire de connexion
+    link(rel='stylesheet' href='https://jlm2017.github.io/theme/dist/theme.css')
+  body
+    .container
+      h1 Formulaire de connexion
+      form(method='POST' action=action)
+        if hidden
+          each key, val in hidden
+            input(type='hidden' name=key value=val)
+        div(class=error ? "form-group has-error" : "form-group")
+          label(for="email") Votre adresse email
+          input(type="email" class="form-control" id="email" name="email" placeholder=previousEmail)
+          if error
+            span(class="help-block")= error
+        button(type="submit" class="btn btn-primary") Valider

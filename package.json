@@ -1,0 +1,34 @@
+{
+  "name": "jlm-auth",
+  "version": "1.0.0",
+  "description": "OAuth2 provider for authentication on JLM2017 websites",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "^3.4.7",
+    "body-parser": "^1.16.1",
+    "connect-ensure-login": "^0.1.1",
+    "connect-redis": "^3.2.0",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.14.1",
+    "express-bunyan-logger": "^1.3.1",
+    "express-session": "^1.15.1",
+    "nodemailer": "^3.1.4",
+    "oauth2orize": "^1.8.0",
+    "passport": "^0.3.2",
+    "passport-http-bearer": "^1.0.1",
+    "pug": "^2.0.0-beta11",
+    "qs": "^6.3.1",
+    "redis": "^2.6.5",
+    "request-promise": "^4.1.1",
+    "uid2": "0.0.3",
+    "verror": "^1.9.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.16.1"
+  }
+}
