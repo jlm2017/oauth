@@ -1,0 +1,9 @@
+SECRET=
+PORT=4002
+ENDPOINT=localhost:4002
+SMTP_URL=smtp://user:password@smtp.server.example/?requireTLS=true
+MAIL_FROM=test@jlm2017.fr
+MAIL_TEMPLATE=https://mosaico.jlm2017.fr/emails/e0750403-8866-457e-af6c-bfdc83cf0b89.html
+MAIL_SUBJECT=Connexion
+API_ENDPOINT=http://api.redado.dev
+API_TOKEN=
