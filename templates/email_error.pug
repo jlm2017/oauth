@@ -1,8 +1,8 @@
-doctype html
-html(lang="fr")
-  head
-    title Erreur
-    link(rel='stylesheet' href='https://jlm2017.github.io/theme/dist/theme.css')
-  body
-    .container
-      pre= err
+extends layout.pug
+
+block head
+  title Erreur lors de l'envoi du mail
+
+block content
+  h1 Erreur lors de l'envoi du mail
+  pre= err

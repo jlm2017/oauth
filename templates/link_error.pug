@@ -1,10 +1,13 @@
-doctype html
-html(lang="fr")
-  head
-    title Lien invalide
-    link(rel='stylesheet' href='https://jlm2017.github.io/theme/dist/theme.css')
-  body
-    .container
-      h1 Lien incorrect
-      p.
-        Le lien que vous avez suivi n'est pas ou plus valide.
+extends layout.pug
+
+block head
+  title Lien invalide
+
+block content
+  h1 Lien incorrect
+  p
+    |  Le lien que vous avez suivi n'est pas ou plus valide.
+    |
+    a(href='/email') Accédez au formulaire
+    |
+    | pour demander un nouveau lien.

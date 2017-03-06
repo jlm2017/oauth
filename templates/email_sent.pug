@@ -1,10 +1,9 @@
-doctype html
-html(lang="fr")
-  head
-    title Email envoyé
-    link(rel='stylesheet' href='https://jlm2017.github.io/theme/dist/theme.css')
-  body
-    .container
-      h1 Un email vous a été envoyé
-      p.
-        Verifiez votre boîte email pour vous connecter.
+extends layout.pug
+
+block head
+  title Email envoyé
+
+block content
+  h1 Un email vous a été envoyé
+  p.
+    Verifiez votre boîte email pour vous connecter.
