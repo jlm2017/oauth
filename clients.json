@@ -1,0 +1,20 @@
+[
+  {
+    "id": "client1",
+    "secret": "secret1",
+    "name": "Client 1",
+    "email": "a@b.c",
+    "uris": ["https://developers.google.com/oauthplayground"],
+    "scopes": ["view_profile"],
+    "isTrusted": false
+  },
+  {
+    "id": "client2",
+    "secret": "secret2",
+    "name": "Client 2",
+    "email": "a@b.c",
+    "uris": ["https://developers.google.com/oauthplayground"],
+    "scopes": ["meta", "view_profile", "modify_profile"],
+    "is_trusted": false
+  }
+]

@@ -1,14 +1,10 @@
-const clients = require('./clients.json');
 const scopes = require('./scopes.json');
+const bcrypt = require('bcrypt');
 
-// TODO implement proper client management
-// The Client model currently uses a json file for client
-// configuration which allows easy testing of the OAuth2 server
+const {Clients} = require('../io/api');
 
-const client_map = clients.reduce((obj, client) => {
-  obj[client.id] = client;
-  return obj;
-}, {});
+// used against timing attacks
+const fakeHash = '$2a$10$hMzUK.S/9LM5XLuPyuc6d.5xpTPODX/Ke4kprEB12/XLm7b6be7jy';
 
 const scopes_map = scopes.reduce((obj, scope) => {
   obj[scope.id] = scope;
@@ -16,29 +12,29 @@ const scopes_map = scopes.reduce((obj, scope) => {
 }, {});
 
 exports.find = function find(id) {
-  return Promise.resolve(id in client_map ? client_map[id] : null);
+  return Clients.get(id);
 };
 
 exports.findAndValidateClient = function findAndValidateClient(id, redirectURI, scopes) {
-  // don't forget to validate the scope !!
-
-  const valid = (
-    id in client_map
-    && client_map[id].uris.includes(redirectURI)
-    && scopes.every((scope) => client_map[id].scopes.includes(scope))
-  );
-
-  return Promise.resolve(valid ? client_map[id] : null);
+  return Clients.get(id)
+    .then((client) => {
+      const valid = client.uris.includes(redirectURI) && scopes.every((scope) => client.scopes.includes(scope));
+      return valid ? client : null;
+    });
 };
 
 exports.authenticateClient = function authenticateClient(id, secret) {
-  // TODO : hash client secret (using which hash ?)
-  if (id in client_map && client_map[id].secret === secret) {
-    return Promise.resolve(client_map[id]);
-  }
-  else {
-    return Promise.resolve(null);
-  }
+  return Clients.get(id)
+    .then((client) => {
+      return client
+        ? bcrypt.compare(secret, client.secret)
+          .then((verified) => {
+            return verified ? client : null;
+          })
+        // beware of timing attacks : hashing round even if client not found
+        : bcrypt.compare(secret, fakeHash)
+          .then(() => null);
+    });
 };
 
 exports.scopeToExplanation = function (scopes) {

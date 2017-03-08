@@ -69,7 +69,7 @@ exports.AuthorizationCode = Object.assign(class AuthorizationCode extends Token 
 exports.AccessToken = Object.assign(class AccessToken extends Token {
   constructor(userId, clientId, scope) {
     super();
-    Object.assign(this, {token: uid(128), clientId, scope});
+    Object.assign(this, {token: uid(128), userId, clientId, scope});
   }
 
   expires() {

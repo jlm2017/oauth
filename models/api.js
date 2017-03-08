@@ -1,45 +1,40 @@
-const Promise = require('bluebird');
+const {People} = require('../io/api');
 
 //const config = require('../config');
 
-// TODO implement user management
-// The User model is currently a stub used for testing the
-// oauth process, and it uses hardcoded user for this reason.
-
-const users = [
-  {
-    id: 'user1',
-    email: 'arthur+1@cheysson.fr'
-  },
-  {
-    id: 'user2',
-    email: 'arthur+2@cheysson.fr'
-  }
-];
-
 exports.User = {
   findByEmail: function findByEmail(email) {
-    const user = users.find((u) => u.email === email);
-
-    return Promise.resolve(user || null);
+    return People.getAll({where: {email}})
+      .then((items) => {
+        return items.length ? items[0] : null;
+      });
   },
 
   get: function get(id) {
-    const user = users.find((u) => u.id === id);
-    return Promise.resolve(user || null);
+    return People.get(id);
   },
 
-  save: function(user) {
-    const existingIdx = users.findIndex((u) => u.id === user.id);
+  put: function(id, content) {
+    return People.put(id, content);
+  },
 
-    if(existingIdx) {
-      for(let attr of Object.keys(user)) {
-        users[existingIdx][attr] = user[attr];
-      }
-    } else {
-      users.push(user);
+  addAuthorization(user, client, scopes) {
+    const authorizations = user.authorizations || [];
+    let clientAuthIndex = authorizations.findIndex((auth) => auth.client === client._id);
+
+    if(clientAuthIndex === -1) {
+      authorizations.push({client: client._id, scopes: []});
+      clientAuthIndex = authorizations.length - 1;
     }
 
-    return Promise.resolve(true);
+    const clientAuth = authorizations[clientAuthIndex];
+
+    if (scopes.some((scope) => !clientAuth.scopes.includes(scope))) {
+      clientAuth.scopes = [...new Set([...clientAuth.scopes, ...scopes])];
+
+      return People.patch(user._id, {authorizations}, {etag: user._etag});
+    }
+
+    return Promise.resolve();
   }
 };

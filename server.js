@@ -66,6 +66,8 @@ app.post('/autoriser/decision', oauthServer.decision);
 
 app.post('/token', oauthServer.token);
 
+app.get('/voir_profil', controllers.viewProfile)
+
 verifySMTP().then(function (verified) {
   if (verified) {
     app.listen(config.port);
