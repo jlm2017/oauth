@@ -1,4 +1,5 @@
 const passport = require('passport');
+const {ensureLoggedIn} = require('connect-ensure-login');
 
 const {User} = require('./models/api');
 const {MailToken} = require('./models/tokens');
@@ -52,6 +53,12 @@ exports.badLink = function badLink(req, res) {
   res.render('link_error');
 };
 
+exports.root = [
+  ensureLoggedIn('/email'),
+  function (req, res) {
+    res.render('root', {email: req.user.email});
+  }
+];
 
 exports.viewProfile = [
   passport.authenticate('client_api', {session: false}),

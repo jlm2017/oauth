@@ -66,12 +66,7 @@ app.get('/succes', controllers.authenticationSuccess);
 
 app.get('/lien_incorrect', controllers.badLink);
 
-app.get('/',
-  ensureLoggedIn('/email'),
-  function (req, res) {
-    res.send('OK!');
-  }
-);
+app.get('/', controllers.root);
 
 app.get('/autoriser', oauthServer.authorize);
 app.post('/autoriser/decision', oauthServer.decision);

@@ -1,0 +1,19 @@
+extends layout.pug
+
+block head
+  title Vous êtes correctement authentifié
+
+block content
+  h1 Vous êtes correctement authentifié.e
+  p
+  | Vous êtes authentifié.e avec l'adresse email
+  |
+  strong= email
+  | . Si ce n'est pas votre
+  | adresse,
+  |
+  a(href='/deconnexion') cliquez-ici pour vous déconnecter
+  | .
+  p.
+    Vous pouvez utiliser le menu ci-dessus pour revenir à la section
+    du site que vous souhaitiez utiliser.
