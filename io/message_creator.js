@@ -1,12 +1,13 @@
-const rp = require('request-promise');
-const qs = require('qs');
+const request = require('superagent');
 const VError = require('verror');
 
 const config = require('../config');
 
 function get_template(url, query_parameters) {
-  return rp.get(`${url}?${qs.stringify(query_parameters)}`)
-    .catch(function (err) {
+  return request
+    .get(url)
+    .query(query_parameters)
+    .catch(function(err) {
       throw new VError(err, 'Could not fetch mail template "%s"', url);
     });
 }
@@ -18,12 +19,12 @@ module.exports = function messageCreator(email, token) {
     REDIRECT_LINK: redirect_link,
     TITLE: config.mail_subject
   })
-    .then(function (html) {
+    .then(function (res) {
       return {
         from: config.mail_from,
         to: email,
         subject: config.mail_subject,
-        html: html
+        html: res.text
       };
     });
 };

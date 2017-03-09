@@ -1,5 +1,4 @@
 const express = require('express');
-const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
@@ -15,25 +14,38 @@ const oauthServer = require('./oauth_server');
 
 const config = require('./config');
 
+const sessionStore = new RedisStore({
+  client: redisClient,
+  ttl: config.sessionDuration,
+  prefix: config.sessionPrefix
+});
+
 const app = express();
+
+app.set('views', 'templates');
+app.set('view engine', 'pug');
+app.set('trust proxy', config.trustProxy);
 
 app.use(expressBunyanLogger());
 app.use(express.static('public'));
-app.use(cookieParser(config.secret));
 app.use(bodyParser.urlencoded());
 app.use(session({
-  store: new RedisStore({client: redisClient}),
-  secret: config.secret,
+  store: sessionStore,
+  secret: config.cookieSecret,
+  name: config.cookieName,
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: {
+    maxAge: config.cookieMaxAge,
+    domain: config.cookieDomain,
+    secure: config.cookieSecure,
+  }
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
 require('./auth');
-
-app.set('views', 'templates');
-app.set('view engine', 'pug');
 
 app.route('/email')
   .get(controllers.showForm)
