@@ -46,6 +46,10 @@ class Token {
       .catch((err) => new VError(err, 'Could not save %s to redis', key));
   }
 
+  remove() {
+    return redisClient.delAsync(this.key());
+  }
+
   key() {
     return Token.key(this.constructor.name, this.token);
   }

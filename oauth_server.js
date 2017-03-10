@@ -46,13 +46,17 @@ oauthServer.exchange(oauth2orize.exchange.code(Promise.coroutine(
         return done(null, false);
       }
 
-      // remember that the user has accepted this client with that scope
+      // validated! let's delete the token
+      yield authCode.remove();
+
+      // then remember that the user has accepted this client with that scope
       yield User.addAuthorization(user, client, authCode.scope);
 
-      // create and save new access token
+      // then create and save new access token
       const at = new AccessToken(authCode.userId, authCode.clientId, authCode.scope);
       const token = yield at.save();
 
+      // and return it to the client
       return done(null, token);
     } catch (err) {
       done(err);
