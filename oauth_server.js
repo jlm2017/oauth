@@ -23,6 +23,11 @@ oauthServer.exchange(oauth2orize.exchange.code(Promise.coroutine(
     try {
       const authCode = yield AuthorizationCode.find(code);
 
+      // forbidden if Token does not exist
+      if (authCode === null) {
+        return done(null, false);
+      }
+
       // We must check the parameters received as part of the token exchange
       // match those we previously received during the authorization code grant
       // to prevent some attacks where an attacker manages to get connected as

@@ -4,7 +4,6 @@ const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
 const expressBunyanLogger = require('express-bunyan-logger');
 const passport = require('passport');
-const {ensureLoggedIn} = require('connect-ensure-login');
 
 const controllers = require('./controllers');
 const {verifySMTP} = require('./io/mail_transport');
@@ -73,7 +72,7 @@ app.post('/autoriser/decision', oauthServer.decision);
 
 app.post('/token', oauthServer.token);
 
-app.get('/voir_profil', controllers.viewProfile)
+app.get('/voir_profil', controllers.viewProfile);
 
 verifySMTP().then(function (verified) {
   if (verified) {
