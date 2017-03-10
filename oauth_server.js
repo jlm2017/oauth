@@ -57,7 +57,7 @@ oauthServer.exchange(oauth2orize.exchange.code(Promise.coroutine(
       const token = yield at.save();
 
       // and return it to the client
-      return done(null, token);
+      return done(null, token, {expires_in: at.expires() - 10});
     } catch (err) {
       done(err);
     }
