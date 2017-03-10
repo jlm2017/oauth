@@ -1,4 +1,4 @@
-const uid = require('uid2');
+const uid = require('uid-safe').sync;
 const VError = require('verror');
 
 const redisClient = require('../io/redis_client');
