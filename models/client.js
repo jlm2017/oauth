@@ -4,7 +4,7 @@ const url = require('url');
 const {Clients} = require('../io/api');
 const scopes = require('./scopes.json');
 
-// used against timing attacks
+// fakeHash used against timing attacks
 const fakeHash = '$2a$10$hMzUK.S/9LM5XLuPyuc6d.5xpTPODX/Ke4kprEB12/XLm7b6be7jy';
 
 const scopes_map = scopes.reduce((obj, scope) => {
@@ -24,20 +24,17 @@ exports.find = function find(id) {
 
 
 exports.findAndValidateClient = function findAndValidateClient(id, redirectURI, scopes) {
-  // we must verify :
-  // - that the redirectURI is part of allowed uris for this client
-  // - that the elements of the scope are all included in authorized
-  //   scopes for this client
-
-  const baseURI = removeQueryPart(redirectURI);
-
-  if (!scopes) {
-    return Promise.resolve(null);
-  }
-
   return Clients.get(id)
     .then((client) => {
-      const valid = client && client.uris.includes(baseURI) && scopes.every((scope) => client.scopes.includes(scope));
+      const validClient = !!client;
+
+      // the redirectURI must exactly match one of the URI registered for this client
+      const validUri = validClient && client.uris.includes(redirectURI);
+
+      // all the scopes must be included in the list of scopes registered for this client
+      const validScope = validClient && scopes && scopes.every(scope => client.scopes.includes(scope));
+
+      const valid = validUri && validScope;
       return valid ? client : null;
     });
 };
@@ -45,13 +42,11 @@ exports.findAndValidateClient = function findAndValidateClient(id, redirectURI, 
 exports.authenticateClient = function authenticateClient(id, secret) {
   return Clients.get(id)
     .then((client) => {
-      return client
-        ? bcrypt.compare(secret, client.secret)
-          .then((verified) => {
-            return verified ? client : null;
-          })
+      return client ?
+        bcrypt.compare(secret, client.secret)
+          .then(verified =>  verified ? client : null) :
         // beware of timing attacks : hashing round even if client not found
-        : bcrypt.compare(secret, fakeHash)
+        bcrypt.compare(secret, fakeHash)
           .then(() => null);
     });
 };
