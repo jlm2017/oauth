@@ -26,6 +26,10 @@ exports.find = function find(id) {
 exports.findAndValidateClient = function findAndValidateClient(id, redirectURI, scopes) {
   const baseURI = removeQueryPart(redirectURI);
 
+  if (!scopes) {
+    return Promise.resolve(null);
+  }
+
   return Clients.get(id)
     .then((client) => {
       const valid = client && client.uris.includes(baseURI) && scopes.every((scope) => client.scopes.includes(scope));
