@@ -3,9 +3,10 @@ const yn = require('yn');
 const config = {};
 
 function required(name) {
-  throw new Error(`Missing required ${name} environment variable.`);
+  if(!yn(process.env.IGNORE_REQUIRED)) {
+    throw new Error(`Missing required ${name} environment variable.`);
+  }
 }
-
 
 // SERVER PARAMETERS
 /*

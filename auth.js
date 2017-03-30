@@ -4,7 +4,7 @@ const BasicStrategy = require('passport-http').BasicStrategy;
 const ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy;
 
 const {MailToken, AccessToken} = require('./models/tokens');
-const {User} = require('./models/api');
+const User = require('./models/people');
 const Client = require('./models/client');
 
 passport.serializeUser(function (user, done) {

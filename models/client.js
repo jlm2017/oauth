@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const url = require('url');
 
-const {Clients} = require('../io/api');
+const {clients} = require('../io/api');
 const scopes = require('./scopes.json');
 
 // fakeHash used against timing attacks
@@ -19,12 +19,12 @@ function removeQueryPart(uri) {
 }
 
 exports.find = function find(id) {
-  return Clients.get(id);
+  return clients.get(id);
 };
 
 
 exports.findAndValidateClient = function findAndValidateClient(id, redirectURI, scopes) {
-  return Clients.get(id)
+  return clients.get(id)
     .then((client) => {
       const validClient = !!client;
 
@@ -40,7 +40,7 @@ exports.findAndValidateClient = function findAndValidateClient(id, redirectURI, 
 };
 
 exports.authenticateClient = function authenticateClient(id, secret) {
-  return Clients.get(id)
+  return clients.get(id)
     .then((client) => {
       return client ?
         bcrypt.compare(secret, client.secret)

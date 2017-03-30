@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@fi/api-client": "^0.0.2",
     "bcrypt": "^1.0.2",
     "bluebird": "^3.4.7",
     "body-parser": "^1.16.1",
@@ -27,7 +28,7 @@
     "pug": "^2.0.0-beta11",
     "redis": "^2.6.5",
     "superagent": "^3.5.0",
-    "uid-safe": "^2.1.4",
+    "uuid": "^3.0.1",
     "verror": "^1.9.0",
     "yn": "^1.2.0"
   },

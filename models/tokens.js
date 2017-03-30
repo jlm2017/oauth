@@ -1,4 +1,4 @@
-const uid = require('uid-safe').sync;
+const uuid = require('uuid/v4');
 const VError = require('verror');
 
 const redisClient = require('../io/redis_client');
@@ -62,7 +62,7 @@ class Token {
 exports.AuthorizationCode = Object.assign(class AuthorizationCode extends Token {
   constructor(clientId, redirectURI, userId, scope) {
     super();
-    Object.assign(this, {token: uid(16), clientId, redirectURI, userId, scope});
+    Object.assign(this, {token: uuid(16), clientId, redirectURI, userId, scope});
   }
 
   expires() {
@@ -73,7 +73,7 @@ exports.AuthorizationCode = Object.assign(class AuthorizationCode extends Token 
 exports.AccessToken = Object.assign(class AccessToken extends Token {
   constructor(userId, clientId, scope) {
     super();
-    Object.assign(this, {token: uid(128), userId, clientId, scope});
+    Object.assign(this, {token: uuid(128), userId, clientId, scope});
   }
 
   expires() {
@@ -84,7 +84,7 @@ exports.AccessToken = Object.assign(class AccessToken extends Token {
 exports.MailToken = Object.assign(class MailToken extends Token {
   constructor(userId) {
     super();
-    Object.assign(this, {token: uid(64), userId});
+    Object.assign(this, {token: uuid(64), userId});
   }
 
   expires() {
