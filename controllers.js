@@ -31,7 +31,7 @@ exports.validateForm = function validateForm(req, res) {
           .then((tok) => messageCreator(email, tok))
           .then(sendMail)
           .then(() => {
-            res.redirect('/email_envoye', 302);
+            res.redirect(302, '/email_envoye');
           })
           .catch((err) => {
             req.log.error('Error when handling', {err});

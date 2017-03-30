@@ -106,3 +106,13 @@ exports.ensureScopesIncluded = function ensureScopesIncluded(scopes) {
     }
   };
 };
+
+exports.connect = passport.authenticate('mail_auth', {
+  successReturnToOrRedirect: '/succes',
+  failureRedirect: '/lien_incorrect'
+});
+
+exports.disconnect = function (req, res) {
+  req.logout();
+  res.redirect('/email');
+};

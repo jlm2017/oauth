@@ -24,6 +24,11 @@ exports.find = function find(id) {
 
 
 exports.findAndValidateClient = function findAndValidateClient(id, redirectURI, scopes) {
+  // we must verify :
+  // - that the redirectURI is part of allowed uris for this client
+  // - that the elements of the scope are all included in authorized
+  //   scopes for this client
+
   const baseURI = removeQueryPart(redirectURI);
 
   if (!scopes) {

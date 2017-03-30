@@ -9,6 +9,9 @@ const {User} = require('./models/api');
 
 const oauthServer = oauth2orize.createServer();
 
+/*
+ * Authorization code grant configuration
+ */
 oauthServer.grant(oauth2orize.grant.code(function (client, redirectURI, user, ares, areq, done) {
   // Warning: the scope is found in the areq parameter, unlike what is said
   // in the documentation that puts it in ares
@@ -18,6 +21,9 @@ oauthServer.grant(oauth2orize.grant.code(function (client, redirectURI, user, ar
     .catch((err) => done(err));
 }));
 
+/*
+ * Token exchange configuration
+ */
 oauthServer.exchange(oauth2orize.exchange.code(Promise.coroutine(
   function *(client, code, redirectURI, done) {
     try {
@@ -77,10 +83,6 @@ oauthServer.deserializeClient(function (id, done) {
 exports.authorize = [
   login.ensureLoggedIn('/email'),
   oauthServer.authorization(function validate(clientID, redirectURI, scope, done) {
-    // we must verify :
-    // - that the redirectURI is part of allowed uris for this client
-    // - that the elements of the scope are all included in authorized
-    //   scopes for this client
     Client.findAndValidateClient(clientID, redirectURI, scope)
       .catch((err) => done(err))
       .then((client) => {
