@@ -109,13 +109,17 @@ exports.authorize = [
     // If this is not the case, we will display the decision form (next middleware)
     return done(null, false);
   }),
-  function showDecisionForm(req, res) {
-    res.render('decision', {
-      transactionID: req.oauth2.transactionID,
-      user: req.user,
-      client: req.oauth2.client,
-      scope: Client.scopeToExplanation(req.oauth2.req.scope)
-    });
+  function showDecisionForm(req, res, next) {
+    Client.scopeToExplanation(req.oauth2.req.scope)
+      .then(expls => {
+        res.render('decision', {
+          transactionID: req.oauth2.transactionID,
+          user: req.user,
+          client: req.oauth2.client,
+          scope: expls
+        });
+      })
+      .catch(next);
   }
 ];
 

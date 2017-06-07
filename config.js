@@ -3,7 +3,7 @@ const yn = require('yn');
 const config = {};
 
 function required(name) {
-  if(!yn(process.env.IGNORE_REQUIRED)) {
+  if (!yn(process.env.IGNORE_REQUIRED)) {
     throw new Error(`Missing required ${name} environment variable.`);
   }
 }
@@ -111,8 +111,13 @@ config.mail_subject = process.env.MAIL_SUBJECT || 'Connexion';
  */
 config.api_endpoint = process.env.API_ENDPOINT || required('API_ENDPOINT');
 /*
- * The API Key to use to connect to the API
+ * The API client id
  */
-config.api_key = process.env.API_KEY || required('API_KEY');
+config.clientId = process.env.API_CLIENT_ID || required('API_CLIENT_ID');
+/*
+ * The API client secret
+ */
+config.clientSecret = process.env.API_CLIENT_SECRET || required('API_CLIENT_SECRET');
+
 
 module.exports = config;

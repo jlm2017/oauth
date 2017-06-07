@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@fi/api-client": "^0.0.2",
+    "@fi/api-client": "^0.1.0",
     "bcrypt": "^1.0.2",
     "bluebird": "^3.4.7",
     "body-parser": "^1.16.1",

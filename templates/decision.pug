@@ -10,7 +10,7 @@ block content
 
   ul
     each item in scope
-      li= item.explanation
+      li= item
 
   form(method='POST' action='/autoriser/decision')
     input(type='hidden' name='transaction_id' value=transactionID)

@@ -1,56 +1,51 @@
-const bcrypt = require('bcrypt');
-const url = require('url');
-
-const {clients} = require('../io/api');
-const scopes = require('./scopes.json');
-
-// fakeHash used against timing attacks
-const fakeHash = '$2a$10$hMzUK.S/9LM5XLuPyuc6d.5xpTPODX/Ke4kprEB12/XLm7b6be7jy';
-
-const scopes_map = scopes.reduce((obj, scope) => {
-  obj[scope.id] = scope;
-  return obj;
-}, {});
-
-function removeQueryPart(uri) {
-  const {protocol, host, pathname} = url.parse(uri);
-
-  return `${protocol}//${host}${pathname}`;
-}
+const {clients, scopes, exceptions} = require('../io/api');
 
 exports.find = function find(id) {
-  return clients.get(id);
+  return clients.getById(id);
 };
 
 
 exports.findAndValidateClient = function findAndValidateClient(id, redirectURI, scopes) {
-  return clients.get(id)
+  return clients.getById(id)
     .then((client) => {
-      const validClient = !!client;
-
       // the redirectURI must exactly match one of the URI registered for this client
-      const validUri = validClient && client.uris.includes(redirectURI);
+      const validUri = client.uris.includes(redirectURI);
 
       // all the scopes must be included in the list of scopes registered for this client
-      const validScope = validClient && scopes && scopes.every(scope => client.scopes.includes(scope));
+      const validScope = scopes && scopes.every(scope => client.scopes.includes(scope));
 
       const valid = validUri && validScope;
+
       return valid ? client : null;
+    })
+    .catch(err => {
+      if (err instanceof exceptions.NotFoundError) {
+        return null;
+      }
+      throw err;
     });
 };
 
 exports.authenticateClient = function authenticateClient(id, secret) {
-  return clients.get(id)
+  return clients.authenticate.post({id, secret})
     .then((client) => {
-      return client ?
-        bcrypt.compare(secret, client.secret)
-          .then(verified =>  verified ? client : null) :
-        // beware of timing attacks : hashing round even if client not found
-        bcrypt.compare(secret, fakeHash)
-          .then(() => null);
+      return client;
+    })
+    .catch(err => {
+      if (err instanceof exceptions.ValidationError) {
+        return null;
+      }
+      throw err;
     });
 };
 
-exports.scopeToExplanation = function (scopes) {
-  return scopes.map((scope) => scopes_map[scope]);
+exports.scopeToExplanation = function (scopeLabels) {
+  return scopes.list()
+    .then(l => {
+      const scopes_map = {};
+      for (let scope of l) {
+        scopes_map[scope.label] = scope.description;
+      }
+      return scopeLabels.map((scope) => scopes_map[scope]);
+    });
 };

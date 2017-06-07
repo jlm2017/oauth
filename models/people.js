@@ -1,32 +1,38 @@
-const {people} = require('../io/api');
+const {people, authorizations} = require('../io/api');
 
 module.exports = {
   findByEmail: function findByEmail(email) {
-    return people.find({email})
+    return people.list({email})
       .then((res) => {
         return res[0] || null;
       });
   },
 
   get: function get(id) {
-    return people.get(id);
+    return people.getById(id);
   },
 
   addAuthorization(user, client, scopes) {
     user.authorizations = user.authorizations || [];
-    let clientAuthIndex = user.authorizations.findIndex((auth) => auth.client === client._id);
+    let clientAuthIndex = user.authorizations.findIndex((auth) => auth.client === client.url);
 
     if(clientAuthIndex === -1) {
       user.authorizations.push({client: client._id, scopes: []});
-      clientAuthIndex = user.authorizations.length - 1;
+
+      const newAuth = authorizations.create({
+        client: client.url,
+        person: user.url,
+        scopes: scopes
+      });
+
+      return newAuth.save();
     }
 
     const clientAuth = user.authorizations[clientAuthIndex];
 
     if (scopes.some((scope) => !clientAuth.scopes.includes(scope))) {
       clientAuth.scopes = [...new Set([...clientAuth.scopes, ...scopes])];
-
-      return user.save();
+      return clientAuth.save();
     }
 
     return Promise.resolve();

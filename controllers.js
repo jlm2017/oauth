@@ -32,12 +32,12 @@ exports.validateForm = function validateForm(req, res) {
           .then(sendMail)
           .then(() => {
             res.redirect(302, '/email_envoye');
-          })
-          .catch((err) => {
-            req.log.error('Error when handling', {err});
-            res.render('email_error', {err});
           });
       }
+    })
+    .catch((err) => {
+      req.log.error('Error when handling', {err});
+      res.render('email_error', {err});
     });
 };
 
