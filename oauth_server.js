@@ -62,8 +62,14 @@ oauthServer.exchange(oauth2orize.exchange.code(Promise.coroutine(
       const at = new AccessToken(authCode.userId, authCode.clientId, authCode.scope);
       const token = yield at.save();
 
+      const authInfo = {expires_in: at.expires()};
+
+      if (authCode.scope.includes('get_profile')) {
+        authInfo.profile = user.url;
+      }
+
       // and return it to the client
-      return done(null, token, {expires_in: at.expires() - 10});
+      return done(null, token, authInfo);
     } catch (err) {
       done(err);
     }
@@ -97,7 +103,7 @@ exports.authorize = [
     // - the client is trusted
     // - the user has already authorized this client with all the requested scopes
 
-    if (client.is_trusted) {
+    if (client.trusted) {
       return done(null, true);
     }
 
