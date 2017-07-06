@@ -3,9 +3,9 @@ const login = require('connect-ensure-login');
 const passport = require('passport');
 const Promise = require('bluebird');
 
-const {AuthorizationCode, AccessToken} = require('./models/tokens');
-const Client = require('./models/client');
-const User = require('./models/people');
+const {AuthorizationCode, AccessToken} = require('../models/tokens');
+const Client = require('../models/client');
+const User = require('../models/people');
 
 const oauthServer = oauth2orize.createServer();
 

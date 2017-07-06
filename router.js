@@ -2,24 +2,24 @@ const express = require('express');
 
 const router = express.Router();
 
-const controllers = require('./controllers');
+const pages = require('./controllers/pages');
 const auth = require('./auth');
-const oauthServer = require('./oauth_server');
+const oauthServer = require('./controllers/oauth_server');
 
 // root route
-router.get('/', controllers.root);
+router.get('/', pages.root);
 
 // mail routes
 router.route('/email')
-  .get(controllers.showForm)
-  .post(controllers.validateForm);
-router.get('/email_envoye', controllers.emailSent);
+  .get(pages.showForm)
+  .post(pages.validateForm);
+router.get('/email_envoye', pages.emailSent);
 
 // authentication routes
 router.get('/connexion', auth.connect);
 router.get('/deconnexion', auth.disconnect);
-router.get('/succes', controllers.authenticationSuccess);
-router.get('/lien_incorrect', controllers.badLink);
+router.get('/succes', pages.authenticationSuccess);
+router.get('/lien_incorrect', pages.badLink);
 
 /*
  * OAUTH2 routes
@@ -33,8 +33,5 @@ router.post('/token', oauthServer.token);
 
 // Interaction form handling
 router.post('/autoriser/decision', oauthServer.decision);
-
-// Basic route to access profile
-router.get('/voir_profil', controllers.viewProfile);
 
 module.exports = router;

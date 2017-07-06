@@ -87,26 +87,6 @@ passport.use('client_api', new BearerStrategy(
   }
 ));
 
-/*
- * Middleware used to verify that the access token used for authentication
- * includes the scopes provided as argument
- */
-exports.ensureScopesIncluded = function ensureScopesIncluded(scopes) {
-  if (typeof scopes === 'string') {
-    scopes = [scopes];
-  }
-
-  return function (req, res, next) {
-    const currentScopes = req.authInfo && req.authInfo.scopes;
-
-    if (currentScopes && scopes.every((s) => (currentScopes.includes(s)))) {
-      next();
-    } else {
-      res.status(403).send({'status': 403, 'message': 'No authorization to see this page'});
-    }
-  };
-};
-
 exports.connect = passport.authenticate('mail_auth', {
   successReturnToOrRedirect: '/succes',
   failureRedirect: '/lien_incorrect'
