@@ -12,7 +12,7 @@ exports.showForm = function showForm(req, res) {
   });
 };
 
-exports.validateForm = function validateForm(req, res) {
+exports.validateForm = function validateForm(req, res, next) {
   const {email} = req.body;
 
   return User.findByEmail(email)
@@ -34,8 +34,7 @@ exports.validateForm = function validateForm(req, res) {
       }
     })
     .catch((err) => {
-      req.log.error('Error when handling', {err});
-      res.render('email_error', {err});
+      next(err);
     });
 };
 

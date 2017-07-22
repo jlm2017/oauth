@@ -18,7 +18,7 @@ oauthServer.grant(oauth2orize.grant.code(function (client, redirectURI, user, ar
   const ac = new AuthorizationCode(client.id, redirectURI, user._id, areq.scope);
   ac.save()
     .then((code) => done(null, code))
-    .catch((err) => done(err));
+    .catch(done);
 }));
 
 /*
@@ -86,23 +86,30 @@ oauthServer.deserializeClient(function (id, done) {
     .catch(done);
 });
 
-exports.authorize = [
-  login.ensureLoggedIn('/email'),
-  oauthServer.authorization(function validate(clientID, redirectURI, scope, done) {
-    Client.findAndValidateClient(clientID, redirectURI, scope)
-      .catch((err) => done(err))
-      .then((client) => {
-        if (client !== null) {
-          return done(null, client, redirectURI);
-        } else {
-          return done(null, false);
-        }
-      });
-  }, function immediate(client, user, scope, done) {
-    // we immediately authorize, without asking the user, if:
-    // - the client is trusted
-    // - the user has already authorized this client with all the requested scopes
+function validate(clientID, redirectURI, scope, done) {
+  /**
+   * Validate that the client is known and is allowed these scopes and redirect URI
+   */
+  Client.findAndValidateClient(clientID, redirectURI, scope)
+    .catch((err) => done(err))
+    .then((client) => {
+      if (client !== null) {
+        return done(null, client, redirectURI);
+      } else {
+        return done(null, false);
+      }
+    });
+}
 
+function immediate(client, user, scope, done) {
+  /**
+   * Determines if the request should be immediately authorized, or if the user should be asked
+   *
+   * we immediately authorize, without asking the user, if:
+   * - the client is trusted
+   * - the user has already authorized this client with all the requested scopes
+   */
+  try {
     if (client.trusted) {
       return done(null, true);
     }
@@ -114,26 +121,48 @@ exports.authorize = [
 
     // If this is not the case, we will display the decision form (next middleware)
     return done(null, false);
-  }),
-  function showDecisionForm(req, res, next) {
-    Client.scopeToExplanation(req.oauth2.req.scope)
-      .then(expls => {
-        res.render('decision', {
-          transactionID: req.oauth2.transactionID,
-          user: req.user,
-          client: req.oauth2.client,
-          scope: expls
-        });
-      })
-      .catch(next);
+  } catch (err) {
+    done(err);
   }
+}
+
+function showDecisionForm(req, res, next) {
+  /**
+   * a controller that shows the decision form used to ask the user to confirm or reject the authorization request
+   */
+  Client.scopeToExplanation(req.oauth2.req.scope)
+    .then(expls => {
+      res.render('decision', {
+        transactionID: req.oauth2.transactionID,
+        user: req.user,
+        client: req.oauth2.client,
+        scope: expls
+      });
+    })
+    .catch(next);
+}
+
+
+/**
+ * Controllers for the authorization code endpoint
+ */
+exports.authorize = [
+  login.ensureLoggedIn('/email'),
+  oauthServer.authorization(validate, immediate),
+  showDecisionForm
 ];
 
+/***
+ * Controllers handling the response from the decision form
+ */
 exports.decision = [
   login.ensureLoggedIn('/email'),
   oauthServer.decision()
 ];
 
+/**
+ * Controllers for the token exchange code endpoint
+ */
 exports.token = [
   passport.authenticate(['client_basic', 'client_body'], {session: false}),
   oauthServer.token(),

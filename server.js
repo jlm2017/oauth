@@ -2,8 +2,28 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
-const expressBunyanLogger = require('express-bunyan-logger');
+const winston = require('winston');
+const morgan = require('morgan');
 const passport = require('passport');
+
+winston.configure({
+  transports: [
+    new (winston.transports.Console)({
+      level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+      json: process.env.NODE_ENV === 'production',
+      stringify: process.env.NODE_ENV === 'production',
+      handleExceptions: true,
+      humanReadableUnhandledException: true
+    }),
+  ]
+});
+
+const stream = {
+  write: function(msg) {
+    winston.info(msg.trim());
+  }
+};
+
 
 const {verifySMTP} = require('./io/mail_transport');
 const redisClient = require('./io/redis_client');
@@ -24,8 +44,8 @@ app.set('views', 'templates');
 app.set('view engine', 'pug');
 app.set('trust proxy', config.trustProxy);
 
-// configure logging
-app.use(expressBunyanLogger());
+// configure req/res logging
+app.use(morgan('short', {stream}));
 
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended: false}));
@@ -46,6 +66,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/', router);
+
+/**
+ * Error handler
+ */
+app.use(function(err, req, res, next) {
+  winston.error('Unexpected error', err);
+  res.status(500).send('Erreur inattendue');
+});
 
 // verify connection to SMTP server and start listening
 verifySMTP().then(function (verified) {
