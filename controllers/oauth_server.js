@@ -25,7 +25,14 @@ oauthServer.grant(oauth2orize.grant.code(function (client, redirectURI, user, ar
  * Token exchange configuration
  */
 oauthServer.exchange(oauth2orize.exchange.code(Promise.coroutine(
-  function *(client, code, redirectURI, done) {
+  function * verifyRequest(client, code, redirectURI, done) {
+    /*
+     * Verify that the request is genuine and returns the newly generated access token
+     *
+     * Check that the authorization code given as part of the request is correct
+     * and that all parameters (client id, redirect URI) are the same as they were
+     * when the authorization code was generated.
+     */
     try {
       const authCode = yield AuthorizationCode.find(code);
 
@@ -64,6 +71,8 @@ oauthServer.exchange(oauth2orize.exchange.code(Promise.coroutine(
 
       const authInfo = {expires_in: at.expires()};
 
+      // add profile information in the case the client asked and was authorized for
+      // the scope 'get_profile'
       if (authCode.scope.includes('get_profile')) {
         authInfo.profile = user.url;
       }
@@ -86,7 +95,7 @@ oauthServer.deserializeClient(function (id, done) {
     .catch(done);
 });
 
-function validate(clientID, redirectURI, scope, done) {
+function validateAuthorizationCodeRequest(clientID, redirectURI, scope, done) {
   /**
    * Validate that the client is known and is allowed these scopes and redirect URI
    */
@@ -101,12 +110,12 @@ function validate(clientID, redirectURI, scope, done) {
     });
 }
 
-function immediate(client, user, scope, done) {
+function checkIfBypassUserConfirmation(client, user, scope, done) {
   /**
-   * Determines if the request should be immediately authorized, or if the user should be asked
+   * Determines if the request should be immediately authorized, or if we should ask the user for confirmation
    *
-   * we immediately authorize, without asking the user, if:
-   * - the client is trusted
+   * we immediately authorize, without asking the user, if either:
+   * - the client is indicated as trusted in our records
    * - the user has already authorized this client with all the requested scopes
    */
   try {
@@ -148,8 +157,9 @@ function showDecisionForm(req, res, next) {
  */
 exports.authorize = [
   login.ensureLoggedIn('/email'),
-  oauthServer.authorization(validate, immediate),
-  showDecisionForm
+  oauthServer.authorization(validateAuthorizationCodeRequest, checkIfBypassUserConfirmation),
+  showDecisionForm,
+  oauthServer.authorizationErrorHandler()
 ];
 
 /***
