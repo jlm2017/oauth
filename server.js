@@ -71,6 +71,10 @@ app.use('/', router);
  * Error handler
  */
 app.use(function(err, req, res, next) {
+  if (err.status && err.status !== 500) {
+    return res.status(err.status).end();
+  }
+
   winston.error('Unexpected error', err);
   res.status(500).send('Erreur inattendue');
 });
