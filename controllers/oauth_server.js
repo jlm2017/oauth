@@ -1,6 +1,5 @@
 const oauth2orize = require('oauth2orize');
 const login = require('connect-ensure-login');
-const passport = require('passport');
 const Promise = require('bluebird');
 
 const {AuthorizationCode, AccessToken} = require('../models/tokens');
@@ -174,7 +173,6 @@ exports.decision = [
  * Controllers for the token exchange code endpoint
  */
 exports.token = [
-  passport.authenticate(['client_basic', 'client_body'], {session: false}),
   oauthServer.token(),
   oauthServer.errorHandler()
 ];

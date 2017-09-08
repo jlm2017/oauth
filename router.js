@@ -1,4 +1,6 @@
 const express = require('express');
+const cors = require('cors');
+const passport = require('passport');
 
 const router = express.Router();
 
@@ -29,7 +31,16 @@ router.get('/lien_incorrect', pages.badLink);
 // Authorization code endpoint
 router.get('/autoriser', oauthServer.authorize);
 // Token exchange endpoint
-router.post('/token', oauthServer.token);
+router.options('/token', cors());
+router.post('/token',
+  passport.authenticate(['client_basic', 'client_body'], {session: false}),
+  cors((req, cb) => {
+    return cb(null, {
+      origin: (req.user.uris.filter(uri => uri.includes(req.header('Origin'))).length > 0)
+    });
+  }),
+  oauthServer.token
+);
 
 // Interaction form handling
 router.post('/autoriser/decision', oauthServer.decision);
