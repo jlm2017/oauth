@@ -71,8 +71,8 @@ oauthServer.exchange(oauth2orize.exchange.code(Promise.coroutine(
       const authInfo = {expires_in: at.expires()};
 
       // add profile information in the case the client asked and was authorized for
-      // the scope 'get_profile'
-      if (authCode.scope.includes('get_profile')) {
+      // the scope 'view_profile'
+      if (authCode.scope.includes('view_profile')) {
         authInfo.profile = user.url;
       }
 
