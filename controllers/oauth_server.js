@@ -1,10 +1,23 @@
 const oauth2orize = require('oauth2orize');
 const login = require('connect-ensure-login');
+const winston = require('winston');
 const Promise = require('bluebird');
 
 const {AuthorizationCode, AccessToken} = require('../models/tokens');
 const Client = require('../models/client');
 const User = require('../models/people');
+
+winston.configure({
+  transports: [
+    new (winston.transports.Console)({
+      level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+      json: process.env.NODE_ENV === 'production',
+      stringify: process.env.NODE_ENV === 'production',
+      handleExceptions: true,
+      humanReadableUnhandledException: true
+    }),
+  ]
+});
 
 const oauthServer = oauth2orize.createServer();
 
@@ -158,6 +171,10 @@ exports.authorize = [
   login.ensureLoggedIn('/email'),
   oauthServer.authorization(validateAuthorizationCodeRequest, checkIfBypassUserConfirmation),
   showDecisionForm,
+  function(err, req, res, next) {
+    winston.error('Authentization endpoint error', err);
+    next(err);
+  },
   oauthServer.authorizationErrorHandler()
 ];
 
@@ -174,5 +191,9 @@ exports.decision = [
  */
 exports.token = [
   oauthServer.token(),
+  function(err, req, res, next) {
+    winston.error('Token endpoint error', err);
+    next(err);
+  },
   oauthServer.errorHandler()
 ];
