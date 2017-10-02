@@ -21,6 +21,7 @@
     "js-base64": "^2.1.9",
     "morgan": "^1.8.2",
     "nodemailer": "^3.1.4",
+    "nodemailer-html-to-text": "^2.1.0",
     "oauth2orize": "^1.8.0",
     "passport": "^0.3.2",
     "passport-http": "^0.3.0",

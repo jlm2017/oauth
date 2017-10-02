@@ -1,5 +1,6 @@
 const request = require('superagent');
 const VError = require('verror');
+const querystring = require('querystring');
 
 const config = require('../config');
 
@@ -14,11 +15,16 @@ function get_template(url, query_parameters) {
 
 module.exports = function messageCreator(email, token) {
   const redirect_link = `${config.endpoint}/connexion?access_token=${token}`;
-  return get_template(config.templateUrl, {
+
+  const bindings = {
     EMAIL: email,
     REDIRECT_LINK: redirect_link,
-    TITLE: config.mail_subject
-  })
+    TITLE: config.mail_subject,
+  };
+
+  bindings['LINK_BROWSER'] = `${config.templateUrl}?${querystring.stringify(bindings)}`;
+
+  return get_template(config.templateUrl, bindings)
     .then(function (res) {
       return {
         from: config.mail_from,
