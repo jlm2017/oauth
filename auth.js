@@ -51,7 +51,7 @@ passport.use('mail_code', new LocalStrategy(
     if (req.session.userId == username
         && req.session.code == password
         && req.session.csrf == req.body.csrf
-        && req.session.codeExpiration > new Date()
+        && new Date(req.session.codeExpiration) > new Date()
       ) {
       return User.get(req.session.userId)
         .then((user) => cb(null, user, {direct: true}))
