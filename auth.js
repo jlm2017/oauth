@@ -2,6 +2,7 @@ const passport = require('passport');
 const BearerStrategy = require('passport-http-bearer').Strategy;
 const BasicStrategy = require('passport-http').BasicStrategy;
 const ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy;
+const LocalStrategy = require('passport-local');
 
 const {MailToken, AccessToken} = require('./models/tokens');
 const User = require('./models/people');
@@ -26,7 +27,7 @@ passport.deserializeUser(function (userId, done) {
  * email address: if she gives it, she is sent a message including
  * a link containing the access token used in this strategy.
  */
-passport.use('mail_auth', new BearerStrategy(
+passport.use('mail_link', new BearerStrategy(
   function (token, cb) {
     MailToken.findAndDelete(token)
       .then(function (mailToken) {
@@ -40,6 +41,26 @@ passport.use('mail_auth', new BearerStrategy(
       .catch((err) => {
         cb(err);
       });
+  }
+));
+
+
+passport.use('mail_code', new LocalStrategy(
+  {passReqToCallback: true},
+  function (req, username, password, cb) {
+    if (req.session.userId == username
+        && req.session.code == password
+        && req.session.csrf == req.body.csrf
+        && req.session.codeExpiration > new Date()
+      ) {
+      return User.get(req.session.userId)
+        .then((user) => cb(null, user, {direct: true}))
+        .catch((err) => {
+          cb(err);
+        });
+    }
+
+    return cb(null, false);
   }
 ));
 
@@ -87,9 +108,15 @@ passport.use('client_api', new BearerStrategy(
   }
 ));
 
-exports.connect = passport.authenticate('mail_auth', {
+exports.connect = passport.authenticate('mail_link', {
   successReturnToOrRedirect: '/succes',
   failureRedirect: '/lien_incorrect'
+});
+
+
+exports.codeConnect = passport.authenticate('mail_code', {
+  successReturnToOrRedirect: '/succes',
+  failureRedirect: '/code_incorrect'
 });
 
 exports.disconnect = function (req, res) {
