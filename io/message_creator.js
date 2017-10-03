@@ -13,13 +13,14 @@ function get_template(url, query_parameters) {
     });
 }
 
-module.exports = function messageCreator(email, token) {
+module.exports = function messageCreator(email, token, code) {
   const redirect_link = `${config.endpoint}/connexion?access_token=${token}`;
 
   const bindings = {
     EMAIL: email,
     REDIRECT_LINK: redirect_link,
     TITLE: config.mail_subject,
+    CODE: code
   };
 
   bindings['LINK_BROWSER'] = `${config.templateUrl}?${querystring.stringify(bindings)}`;

@@ -1,9 +1,23 @@
+const crypto = require('crypto');
 const {ensureLoggedIn} = require('connect-ensure-login');
+const {promisify} = require('util');
+const uuid = require('uuid/v4');
 
 const User = require('../models/people');
 const {MailToken} = require('../models/tokens');
 const {sendMail} = require('../io/mail_transport');
 const messageCreator = require('../io/message_creator');
+
+async function randomDigitCode(length) {
+  var code = '';
+
+  for (var i = 0; i < length; i++) {
+    let buf = await promisify(crypto.randomBytes)(4);
+    code += (buf.readUInt32BE(0) % 10).toString();
+  }
+
+  return code;
+}
 
 exports.showForm = function showForm(req, res) {
   res.render('email_form', {
@@ -25,8 +39,15 @@ exports.validateForm = function validateForm(req, res, next) {
       }
       else {
         const token = new MailToken(user._id);
-        return token.save()
-          .then((tok) => messageCreator(email, tok))
+        randomDigitCode(8).then((code) => {
+          req.session.code = code;
+          req.session.userId = user._id;
+          req.session.csrf = uuid();
+          req.session.codeExpiration = new Date(new Date().getTime() + 1000 * 60 * 30);
+
+          return Promise.all([token.save(), code]);
+        })
+          .then(([tok, code]) => messageCreator(email, tok, code))
           .then(sendMail)
           .then(() => {
             res.redirect(302, '/email_envoye');
@@ -39,7 +60,10 @@ exports.validateForm = function validateForm(req, res, next) {
 };
 
 exports.emailSent = function emailSent(req, res) {
-  res.render('email_sent');
+  res.render('email_sent', {
+    userId: req.session.userId,
+    csrf: req.session.csrf
+  });
 };
 
 exports.authenticationSuccess = function authenticationSuccess(req, res) {
@@ -48,6 +72,10 @@ exports.authenticationSuccess = function authenticationSuccess(req, res) {
 
 exports.badLink = function badLink(req, res) {
   res.render('link_error');
+};
+
+exports.badCode = function badCode(req, res) {
+  res.render('code_error');
 };
 
 exports.root = [
