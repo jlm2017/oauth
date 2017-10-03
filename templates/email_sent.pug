@@ -6,4 +6,17 @@ block head
 block content
   h1 Un email vous a été envoyé
   p.
-    Verifiez votre boîte email pour vous connecter.
+    Verifiez votre boîte email. Vous pouvez cliquer sur le lien que vous
+    avez reçu, ou entrer le code de connexion à 8 chiffres qui se trouve dans
+    l'email.
+  form(method='POST' action='connexion')
+      input(type="hidden" name="username" value=userId)
+      input(type="hidden" name="csrf" value=csrf)
+      div(class=error ? "form-group has-error" : "form-group")
+        label(for="password") Code de connexion&nbsp;:
+        .input-group
+          input(type="text" class="form-control input-lg text-center" name="password")
+          .input-group-btn
+            button(type="submit" class="btn btn-lg btn-primary") Se connecter
+        if error
+          span(class="help-block")= error
