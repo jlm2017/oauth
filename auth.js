@@ -49,7 +49,7 @@ passport.use('mail_code', new LocalStrategy(
   {passReqToCallback: true},
   function (req, username, password, cb) {
     if (req.session.userId == username
-        && req.session.code == password
+        && req.session.code == password.trim()
         && req.session.csrf == req.body.csrf
         && new Date(req.session.codeExpiration) > new Date()
       ) {
