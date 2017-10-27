@@ -45,7 +45,7 @@ app.set('view engine', 'pug');
 app.set('trust proxy', config.trustProxy);
 
 // configure req/res logging
-app.use(morgan('short', {stream}));
+if (process.env.NODE_ENV !== 'production') app.use(morgan('short', {stream}));
 
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended: false}));
