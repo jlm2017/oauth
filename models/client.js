@@ -39,13 +39,13 @@ exports.authenticateClient = function authenticateClient(id, secret) {
     });
 };
 
-exports.scopeToExplanation = function (scopeLabels) {
+exports.scopeToExplanation = function (scopeNames) {
   return scopes.list()
     .then(l => {
       const scopes_map = {};
       for (let scope of l) {
-        scopes_map[scope.label] = scope.description;
+        scopes_map[scope.name] = scope.description;
       }
-      return scopeLabels.map((scope) => scopes_map[scope]);
+      return scopeNames.map((scope) => scopes_map[scope]);
     });
 };
