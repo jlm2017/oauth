@@ -28,39 +28,54 @@ passport.deserializeUser(function (userId, done) {
  * a link containing the access token used in this strategy.
  */
 passport.use('mail_link', new BearerStrategy(
-  function (token, cb) {
-    MailToken.findAndDelete(token)
-      .then(function (mailToken) {
-        if (mailToken === null) {
-          return cb(null, false);
-        } else {
-          return User.get(mailToken.userId)
-            .then((user) => cb(null, user, {direct: true}));
-        }
-      })
-      .catch((err) => {
-        cb(err);
-      });
+  async function (token, cb) {
+    try {
+      let mailToken = await MailToken.findAndDelete(token);
+
+      if (mailToken === null) {
+        return cb(null, false);
+      }
+
+      let user = await User.get(mailToken.userId);
+
+      if (user.bounced) {
+        user.bounced = false;
+        user.emails[0].bounced = false;
+        await user.save();
+      }
+
+      return cb(null, user, {direct: true});
+    } catch (e) {
+      cb(e);
+    }
   }
 ));
 
 
 passport.use('mail_code', new LocalStrategy(
   {passReqToCallback: true},
-  function (req, username, password, cb) {
-    if (req.session.userId == username
+  async function (req, username, password, cb) {
+    if (!(req.session.userId == username
         && req.session.code == password.trim()
         && req.session.csrf == req.body.csrf
         && new Date(req.session.codeExpiration) > new Date()
-      ) {
-      return User.get(req.session.userId)
-        .then((user) => cb(null, user, {direct: true}))
-        .catch((err) => {
-          cb(err);
-        });
+      )) {
+      return cb(null, false);
     }
 
-    return cb(null, false);
+    try {
+      let user = await User.get(req.session.userId);
+
+      if (user.bounced) {
+        user.bounced = false;
+        user.emails[0].bounced = false;
+        await user.save();
+      }
+
+      return cb(null, user, {direct: true});
+    } catch (err) {
+      return cb(err);
+    }
   }
 ));
 
