@@ -8,7 +8,7 @@ block content
   form(method='POST' action='email')
     div(class=error ? "form-group has-error" : "form-group")
       label(for="email") Votre adresse email
-      input(type="email" class="form-control" id="email" name="email" placeholder=previousEmail)
+      input(type="email" class="form-control" id="email" name="email" placeholder=previousEmail required)
       if error
         span(class="help-block")= error
     button(type="submit" class="btn btn-primary") Valider

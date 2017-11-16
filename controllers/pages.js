@@ -29,6 +29,13 @@ exports.showForm = function showForm(req, res) {
 exports.validateForm = function validateForm(req, res, next) {
   const {email} = req.body;
 
+  if (!email) {
+    res.render('email_form', {
+      action: 'email',
+      error: 'Le champ email est requis.'
+    });
+  }
+
   return User.findByEmail(email)
     .then((user) => {
       if (user === null) {
