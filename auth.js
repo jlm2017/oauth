@@ -12,10 +12,12 @@ passport.serializeUser(function (user, done) {
   done(null, user._id);
 });
 
-passport.deserializeUser(function (userId, done) {
-  User.get(userId)
-    .catch(done)
-    .then((user) => done(null, user));
+passport.deserializeUser(async function (userId, done) {
+  try {
+    return done(null, await User.get(userId));
+  } catch(err) {
+    return done(null, false);
+  }
 });
 
 /*
