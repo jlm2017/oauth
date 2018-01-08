@@ -11,32 +11,32 @@
   "dependencies": {
     "@fi/api-client": "^0.1.0",
     "bcrypt": "^1.0.2",
-    "bluebird": "^3.4.7",
-    "body-parser": "^1.16.1",
+    "bluebird": "^3.5.1",
+    "body-parser": "^1.18.2",
     "connect-ensure-login": "^0.1.1",
-    "connect-redis": "^3.2.0",
+    "connect-redis": "^3.3.3",
     "cors": "^2.8.4",
-    "express": "^4.14.1",
-    "express-session": "^1.15.1",
-    "js-base64": "^2.1.9",
-    "morgan": "^1.8.2",
-    "nodemailer": "^3.1.4",
+    "express": "^4.16.2",
+    "express-session": "^1.15.6",
+    "js-base64": "^2.4.0",
+    "morgan": "^1.9.0",
+    "nodemailer": "^4.4.1",
     "nodemailer-html-to-text": "^2.1.0",
-    "oauth2orize": "^1.8.0",
-    "passport": "^0.3.2",
+    "oauth2orize": "^1.11.0",
+    "passport": "^0.4.0",
     "passport-http": "^0.3.0",
     "passport-http-bearer": "^1.0.1",
     "passport-local": "^1.0.0",
     "passport-oauth2-client-password": "^0.1.2",
     "pug": "^2.0.0-beta11",
     "redis": "^2.6.5",
-    "superagent": "^3.5.0",
+    "superagent": "^3.8.2",
     "uuid": "^3.0.1",
     "verror": "^1.9.0",
-    "winston": "^2.3.1",
-    "yn": "^1.2.0"
+    "winston": "^2.4.0",
+    "yn": "^2.0.0"
   },
   "devDependencies": {
-    "eslint": "^3.16.1"
+    "eslint": "^4.15.0"
   }
 }
