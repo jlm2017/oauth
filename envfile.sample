@@ -1,9 +1,16 @@
-SECRET=
 PORT=4002
-ENDPOINT=localhost:4002
-SMTP_URL=smtp://user:password@smtp.server.example/?requireTLS=true
-MAIL_FROM=test@jlm2017.fr
-MAIL_TEMPLATE=https://mosaico.jlm2017.fr/emails/e0750403-8866-457e-af6c-bfdc83cf0b89.html
-MAIL_SUBJECT=Connexion
-API_ENDPOINT=http://api.redado.dev
-API_KEY=
+TRUST_PROXY=loopback
+ENDPOINT=http://localhost:4002
+
+COOKIE_SECRET=secret
+SESSION_DOMAIN=localhost
+COOKIE_SECURE=false
+
+SMTP_URL=smtp://localhost:1025
+MAIL_TEMPLATE=https://mosaico.jlm2017.fr/emails/46bc5b3c-e7d5-42ec-a995-32665fd47deb.html
+MAIL_SUBJECT="Connexion à lafranceinsoumise.fr"
+MAIL_FROM="La France insoumise <nepasrepondre@lafranceinsoumise.fr>"
+
+API_ENDPOINT=http://localhost:8000/legacy
+API_CLIENT_ID=oauth
+API_CLIENT_SECRET="incredible password"
