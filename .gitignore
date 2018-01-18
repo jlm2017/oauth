@@ -1,3 +1,4 @@
 node_modules/
 envfile
 env/
+npm-debug.log
