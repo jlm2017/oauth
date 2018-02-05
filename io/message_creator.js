@@ -7,6 +7,10 @@ require('moment-timezone');
 const config = require('../config');
 moment.locale('fr');
 
+function splitCode(code) {
+  return code.match(/.{1,4}/g).join(' ');
+}
+
 function get_template(url, query_parameters) {
   return request
     .get(url)
@@ -21,7 +25,7 @@ module.exports = function messageCreator(email, code, expiryTime) {
 
   const bindings = {
     EMAIL: email,
-    CODE: code,
+    CODE: splitCode(code),
     EXPIRY_TIME: formattedExpiryTime,
   };
 
