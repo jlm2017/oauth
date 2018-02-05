@@ -1,23 +1,14 @@
-const crypto = require('crypto');
 const {ensureLoggedIn} = require('connect-ensure-login');
-const {promisify} = require('util');
 const uuid = require('uuid/v4');
 
 const User = require('../models/people');
-const {MailToken} = require('../models/tokens');
+const {LoginCode} = require('../models/tokens');
 const {sendMail} = require('../io/mail_transport');
 const messageCreator = require('../io/message_creator');
 
-async function randomDigitCode(length) {
-  var code = '';
+const {TokenBucket} = require('../models/token_bucket');
+const loginTokenBucket = new TokenBucket({name:'sendMail', max: 3, interval: 600});
 
-  for (var i = 0; i < length; i++) {
-    let buf = await promisify(crypto.randomBytes)(4);
-    code += (buf.readUInt32BE(0) % 10).toString();
-  }
-
-  return code;
-}
 
 exports.showForm = function showForm(req, res) {
   res.render('email_form', {
@@ -26,7 +17,7 @@ exports.showForm = function showForm(req, res) {
   });
 };
 
-exports.validateForm = function validateForm(req, res, next) {
+exports.validateForm = async function validateForm(req, res, next) {
   const {email} = req.body;
 
   if (!email) {
@@ -36,34 +27,36 @@ exports.validateForm = function validateForm(req, res, next) {
     });
   }
 
-  return User.findByEmail(email)
-    .then((user) => {
-      if (user === null) {
-        res.render('email_form', {
-          action: 'email',
-          error: 'Votre adresse email n\'est pas trouvée. Etes vous bien signataire ?'
-        });
-      }
-      else {
-        const token = new MailToken(user._id);
-        randomDigitCode(8).then((code) => {
-          req.session.code = code;
-          req.session.userId = user._id;
-          req.session.csrf = uuid();
-          req.session.codeExpiration = new Date(new Date().getTime() + 1000 * 60 * 30);
+  try {
+    const user = await User.findByEmail(email);
+    req.session.userId = user._id;
+    req.session.csrf = uuid();
 
-          return Promise.all([token.save(), code]);
-        })
-          .then(([tok, code]) => messageCreator(email, tok, code))
-          .then(sendMail)
-          .then(() => {
-            res.redirect(302, '/email_envoye');
-          });
-      }
-    })
-    .catch((err) => {
-      next(err);
-    });
+    const allowedToSend = await loginTokenBucket.checkIfAllowed(user._id);
+
+    if (!allowedToSend) {
+      return res.render('mail_rate_limited', {
+        userId: req.session.userId,
+        csrf: req.session.csrf
+      });
+    }
+
+    if (user === null) {
+      res.render('email_form', {
+        action: 'email',
+        error: 'Votre adresse email n\'est pas trouvée. Etes vous bien signataire ?'
+      });
+    }
+
+    const {code, expiration} = await LoginCode.getNewCode(user._id);
+
+    const mail = await messageCreator(email, code, expiration);
+    await sendMail(mail);
+    res.redirect(302, '/email_envoye');
+
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.emailSent = function emailSent(req, res) {

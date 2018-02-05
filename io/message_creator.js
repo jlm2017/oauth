@@ -1,8 +1,11 @@
 const request = require('superagent');
 const VError = require('verror');
 const querystring = require('querystring');
+const moment = require('moment');
+require('moment-timezone');
 
 const config = require('../config');
+moment.locale('fr');
 
 function get_template(url, query_parameters) {
   return request
@@ -13,14 +16,13 @@ function get_template(url, query_parameters) {
     });
 }
 
-module.exports = function messageCreator(email, token, code) {
-  const redirect_link = `${config.endpoint}/connexion?access_token=${token}`;
+module.exports = function messageCreator(email, code, expiryTime) {
+  const formattedExpiryTime = moment(expiryTime).tz('Europe/Paris').format('LT');
 
   const bindings = {
     EMAIL: email,
-    REDIRECT_LINK: redirect_link,
-    TITLE: config.mail_subject,
-    CODE: code
+    CODE: code,
+    EXPIRY_TIME: formattedExpiryTime,
   };
 
   bindings['LINK_BROWSER'] = `${config.templateUrl}?${querystring.stringify(bindings)}`;
@@ -31,7 +33,7 @@ module.exports = function messageCreator(email, token, code) {
         from: config.mail_from,
         to: email,
         subject: config.mail_subject,
-        html: res.text
+        html: res.text,
       };
     });
 };

@@ -1,12 +1,13 @@
 const passport = require('passport');
-const BearerStrategy = require('passport-http-bearer').Strategy;
 const BasicStrategy = require('passport-http').BasicStrategy;
 const ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy;
 const LocalStrategy = require('passport-local');
 
-const {MailToken, AccessToken} = require('./models/tokens');
 const User = require('./models/people');
 const Client = require('./models/client');
+const {LoginCode} = require('./models/tokens');
+const {TokenBucket} = require('./models/token_bucket');
+const codeTokenBucket = new TokenBucket({name: 'loginCode', max: 10, interval: 90,});
 
 passport.serializeUser(function (user, done) {
   done(null, user._id);
@@ -15,57 +16,32 @@ passport.serializeUser(function (user, done) {
 passport.deserializeUser(async function (userId, done) {
   try {
     return done(null, await User.get(userId));
-  } catch(err) {
+  } catch (err) {
     return done(null, false);
   }
 });
 
-/*
- * This authentication strategy is used when the end user
- * tries to authenticate on the website, generally because she
- * has been redirected here by a client.
- *
- * In this cas, she is first redirected to a form asking for her
- * email address: if she gives it, she is sent a message including
- * a link containing the access token used in this strategy.
- */
-passport.use('mail_link', new BearerStrategy(
-  async function (token, cb) {
-    try {
-      let mailToken = await MailToken.findAndDelete(token);
-
-      if (mailToken === null) {
-        return cb(null, false);
-      }
-
-      let user = await User.get(mailToken.userId);
-
-      if (user.bounced) {
-        user.bounced = false;
-        user.emails[0].bounced = false;
-        await user.save();
-      }
-
-      return cb(null, user, {direct: true});
-    } catch (e) {
-      cb(e);
-    }
-  }
-));
-
-
 passport.use('mail_code', new LocalStrategy(
   {passReqToCallback: true},
   async function (req, username, password, cb) {
-    if (!(req.session.userId == username
-        && req.session.code == password.trim()
-        && req.session.csrf == req.body.csrf
-        && new Date(req.session.codeExpiration) > new Date()
-      )) {
-      return cb(null, false);
-    }
-
     try {
+      /*
+       * In this order :
+       * - check csrf protection
+       * - check rate limit
+       * - verify code is correct
+       */
+
+      if ((req.session.userId !== username) || (req.session.csrf !== req.body.csrf)) {
+        return cb(null, false);
+      }
+
+      await codeTokenBucket.raiseIfNotAllowed(username);
+
+      if (!await LoginCode.checkCode(username, password.replace(/\s/g, ''))) {
+        return cb(null, false);
+      }
+
       let user = await User.get(req.session.userId);
 
       if (user.bounced) {
@@ -80,6 +56,13 @@ passport.use('mail_code', new LocalStrategy(
     }
   }
 ));
+
+function handleLoginRateLimit(err, req, res, next) {
+  if (err.rateLimit && err.rateLimit === 'loginCode') {
+    return res.render('code_rate_limited');
+  }
+  next(err);
+}
 
 /*
  * Used by the two authentication strategies just below
@@ -110,31 +93,13 @@ passport.use('client_basic', new BasicStrategy(authenticateClient));
  */
 passport.use('client_body', new ClientPasswordStrategy(authenticateClient));
 
-/*
- * Used by clients when they are acting on behalf of the user,
- * using the AccessToken they obtained using OAuth2.
- */
-passport.use('client_api', new BearerStrategy(
-  function (accessToken, done) {
-    AccessToken.find(accessToken)
-      .then((token) => {
-        return User.get(token.userId)
-          .then((user) => user ? done(null, user, {scopes: token.scope}) : done(null, false));
-      })
-      .catch(done);
-  }
-));
-
-exports.connect = passport.authenticate('mail_link', {
-  successReturnToOrRedirect: '/succes',
-  failureRedirect: '/lien_incorrect'
-});
-
-
-exports.codeConnect = passport.authenticate('mail_code', {
-  successReturnToOrRedirect: '/succes',
-  failureRedirect: '/code_incorrect'
-});
+exports.codeConnect = [
+  passport.authenticate('mail_code', {
+    successReturnToOrRedirect: '/succes',
+    failureRedirect: '/code_incorrect'
+  }),
+  handleLoginRateLimit
+];
 
 exports.disconnect = function (req, res) {
   req.logout();

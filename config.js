@@ -73,11 +73,22 @@ if (config.cookieSecure === null) {
  * The default is two weeks
  */
 config.sessionDuration = +process.env.SESSION_DURATION || 3600 * 24 * 15;
+
 /*
  * The prefix to use to store session with in Redis
  */
 config.sessionPrefix = process.env.SESSION_PREFIX || 'jlmauth';
 
+// TOKEN DURATION
+/*
+ * The duration for the 6 figures codes sent by mail in minutes
+ */
+config.mailCodeDuration = +process.env.MAIL_CODE_DURATION || 90;
+
+/*
+ * The number of concurrent valid codes
+ */
+config.concurrentValidCodes = +process.env.MAIL_CODE_CONCURRENT || 5;
 
 // EMAIL PARAMETERS
 /*

@@ -18,7 +18,6 @@ router.route('/email')
 router.get('/email_envoye', pages.emailSent);
 
 // authentication routes
-router.get('/connexion', auth.connect);
 router.post('/connexion', auth.codeConnect);
 router.get('/deconnexion', auth.disconnect);
 router.get('/succes', pages.authenticationSuccess);

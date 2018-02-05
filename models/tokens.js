@@ -1,5 +1,9 @@
 const uuid = require('uuid/v4');
 const VError = require('verror');
+const crypto = require('crypto');
+const {promisify} = require('util');
+
+const config = require('../config');
 
 const redisClient = require('../io/redis_client');
 
@@ -81,13 +85,76 @@ exports.AccessToken = Object.assign(class AccessToken extends Token {
   }
 }, mixin);
 
-exports.MailToken = Object.assign(class MailToken extends Token {
-  constructor(userId) {
-    super();
-    Object.assign(this, {token: uuid(64), userId});
+
+async function randomDigitCode(length) {
+  // TODO: make the distribution of tokens uniform
+  let code = '';
+
+  for (let i = 0; i < length; i++) {
+    let buf = await promisify(crypto.randomBytes)(4);
+    code += (buf.readUInt32BE(0) % 10).toString();
   }
 
-  expires() {
-    return 600;
+  return code;
+}
+
+
+exports.LoginCode = {
+  async getNewCode(userId) {
+    /*
+     * Generate a new login code
+     *
+     * The code is generated and stored into the redis list that holds the codes for the user
+     * The function then returns both the code and its expiration date
+     *
+     * userId: the id of the user for which to generate the login code
+     */
+    const code = await randomDigitCode(8);
+    const expiration = new Date(new Date().getTime() + 1000 * 60 * config.mailCodeDuration);
+    const key = `LoginCode:${userId}`;
+
+    const payload = JSON.stringify({code, expiration: expiration.getTime()});
+
+    /*
+     - push the new code to the redis list that holds all the current codes for the user
+     - trim the list to limit it to the required number of valid codes
+     - set the expiration time to the mailCodeDuration, because the last code we added is likely the
+       most recent one. There could be race conditions, but their only effect would be to expire a code
+       a few seconds too early.
+     */
+    await redisClient.multi()
+      .lpush(key, payload)
+      .ltrim(key, 0, config.concurrentValidCodes - 1)
+      .expire(key, 60 * config.mailCodeDuration)
+      .execAsync();
+
+    return {code, expiration};
+  },
+
+  async checkCode(userId, code) {
+    /*
+     * check that a login code is valid for a specific user.
+     *
+     * If valid, the code is deleted from the redis list
+     */
+    const key = `LoginCode:${userId}`;
+    const tentativeCode = Buffer.from(code);
+    const now = new Date().getTime();
+
+    const list = await redisClient.lrangeAsync(key, 0, config.concurrentValidCodes - 1);
+    const codes = list.map(s => JSON.parse(s)).filter(c => (c.expiration >= now));
+
+    // use filter (vs. find) and timingSafeEqual to avoid timing attacks
+    const validCodes = codes.filter(c => (code.length === c.code.length) && crypto.timingSafeEqual(Buffer.from(c.code), tentativeCode));
+
+    if (validCodes.length > 0) {
+      let multi = redisClient.multi();
+      for (let code of validCodes) {
+        multi = multi.lrem(key, 1, JSON.stringify(code));
+      }
+      await multi.execAsync();
+    }
+
+    return validCodes.length > 0;
   }
-}, mixin);
+};
