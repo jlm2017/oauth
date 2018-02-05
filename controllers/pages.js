@@ -29,6 +29,14 @@ exports.validateForm = async function validateForm(req, res, next) {
 
   try {
     const user = await User.findByEmail(email);
+
+    if (user === null) {
+      res.render('email_form', {
+        action: 'email',
+        error: 'Votre adresse email n\'est pas trouvée. Etes vous bien signataire ?'
+      });
+    }
+
     req.session.userId = user._id;
     req.session.csrf = uuid();
 
@@ -38,13 +46,6 @@ exports.validateForm = async function validateForm(req, res, next) {
       return res.render('mail_rate_limited', {
         userId: req.session.userId,
         csrf: req.session.csrf
-      });
-    }
-
-    if (user === null) {
-      res.render('email_form', {
-        action: 'email',
-        error: 'Votre adresse email n\'est pas trouvée. Etes vous bien signataire ?'
       });
     }
 
