@@ -1,3 +1,4 @@
+const url = require('url');
 const passport = require('passport');
 const BasicStrategy = require('passport-http').BasicStrategy;
 const ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy;
@@ -101,7 +102,20 @@ exports.codeConnect = [
   handleLoginRateLimit
 ];
 
-exports.disconnect = function (req, res) {
+exports.disconnect = function (req, res, next) {
   req.logout();
+  if (req.query.next) {
+    try {
+      const nextUrl = new url.URL(req.query.next, 'https://lafranceinsoumise.fr');
+      if (nextUrl.hostname.endsWith('lafranceinsoumise.fr')) {
+        return res.redirect(nextUrl.toString());
+      }
+    } catch(e) {
+      if (!(e instanceof TypeError)) {
+        next(e);
+      }
+    }
+  }
+
   res.redirect('/email');
 };
