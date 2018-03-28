@@ -1,11 +1,16 @@
 const {people, authorizations} = require('../io/api');
 
 module.exports = {
-  findByEmail: function findByEmail(email) {
-    return people.list({email})
-      .then((res) => {
-        return res[0] || null;
-      });
+  findByEmail: async function findByEmail(email) {
+    let res = await people.list({email});
+
+    if (res[0]) {
+      return res[0];
+    }
+
+    res = await people.list({email: email.toLowerCase()});
+
+    return res[0] || null;
   },
 
   get: function get(id) {
