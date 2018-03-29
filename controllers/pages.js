@@ -31,7 +31,7 @@ exports.validateForm = async function validateForm(req, res, next) {
     const user = await User.findByEmail(email);
 
     if (user === null) {
-      res.render('email_form', {
+      return res.render('email_form', {
         action: 'email',
         error: 'Votre adresse email n\'est pas trouvée. Etes vous bien signataire ?'
       });
