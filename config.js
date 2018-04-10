@@ -30,6 +30,11 @@ else {
   config.trustProxy = yn(process.env.TRUST_PROXY);
 }
 
+/*
+ * Logout redirect conf
+ */
+config.defaultLogoutRedirect = process.env.DEFAULT_LOGOUT_REDIRECT || 'http://localhost:8000';
+config.allowedLogoutRedirect = (process.env.ALLOWED_LOGOUT_REDIRECT || 'localhost').split(',');
 
 // SESSION PARAMETERS
 /*

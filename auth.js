@@ -4,6 +4,7 @@ const BasicStrategy = require('passport-http').BasicStrategy;
 const ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy;
 const LocalStrategy = require('passport-local');
 
+const config = require('./config');
 const User = require('./models/people');
 const Client = require('./models/client');
 const {LoginCode} = require('./models/tokens');
@@ -106,8 +107,8 @@ exports.disconnect = function (req, res, next) {
   req.logout();
   if (req.query.next) {
     try {
-      const nextUrl = new url.URL(req.query.next, 'https://lafranceinsoumise.fr');
-      if (nextUrl.hostname.endsWith('lafranceinsoumise.fr')) {
+      const nextUrl = new url.URL(req.query.next, config.defaultLogoutRedirect);
+      if (config.allowedLogoutRedirect.includes(nextUrl.hostname)) {
         return res.redirect(nextUrl.toString());
       }
     } catch(e) {
