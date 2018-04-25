@@ -1,11 +1,12 @@
 {
-  "name": "jlm-auth",
+  "name": "fi-auth",
   "version": "1.0.0",
   "description": "OAuth2 provider for authentication on JLM2017 websites",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "private": true,
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -16,13 +17,13 @@
     "connect-ensure-login": "^0.1.1",
     "connect-redis": "^3.3.3",
     "cors": "^2.8.4",
-    "express": "^4.16.2",
+    "express": "^4.16.3",
     "express-session": "^1.15.6",
-    "js-base64": "^2.4.0",
+    "js-base64": "^2.4.3",
     "moment": "^2.20.1",
     "moment-timezone": "^0.5.14",
     "morgan": "^1.9.0",
-    "nodemailer": "^4.4.1",
+    "nodemailer": "^4.6.4",
     "nodemailer-html-to-text": "^2.1.0",
     "oauth2orize": "^1.11.0",
     "passport": "^0.4.0",
@@ -30,15 +31,15 @@
     "passport-http-bearer": "^1.0.1",
     "passport-local": "^1.0.0",
     "passport-oauth2-client-password": "^0.1.2",
-    "pug": "^2.0.0-beta11",
+    "pug": "^2.0.3",
     "redis": "^2.6.5",
     "superagent": "^3.8.2",
-    "uuid": "^3.0.1",
+    "uuid": "^3.2.1",
     "verror": "^1.9.0",
-    "winston": "^2.4.0",
+    "winston": "^2.4.2",
     "yn": "^2.0.0"
   },
   "devDependencies": {
-    "eslint": "^4.15.0"
+    "eslint": "^4.19.1"
   }
 }
