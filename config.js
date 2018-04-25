@@ -101,7 +101,7 @@ config.concurrentValidCodes = +process.env.MAIL_CODE_CONCURRENT || 5;
  *
  * Required parameter
  */
-config.smtp_url = process.env.SMTP_URL || required('SMTP_URL');
+config.smtp_url = yn(process.env.USE_SENDMAIL) ? {sendmail: true} : process.env.SMTP_URL || required('SMTP_URL');
 /*
  * The URL to GET the mail template from
  */
