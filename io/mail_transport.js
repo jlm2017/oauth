@@ -10,5 +10,7 @@ mailTransporter.use('compile', htmlToText({
   hideLinkHrefIfSameAsText: true
 }));
 
-exports.verifySMTP = Promise.promisify(mailTransporter.verify, {context: mailTransporter});
+exports.verifySMTP = config.use_sendmail ?
+  async () => true
+  : mailTransporter.verify.bind(mailTransporter);
 exports.sendMail = Promise.promisify(mailTransporter.sendMail, {context: mailTransporter});
