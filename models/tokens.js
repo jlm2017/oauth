@@ -137,6 +137,10 @@ exports.LoginCode = {
      *
      * If valid, the code is deleted from the redis list
      */
+    if (!/^[0-9]{8}$/.test(code)) {
+      return false;
+    }
+
     const key = `LoginCode:${userId}`;
     const tentativeCode = Buffer.from(code);
     const now = new Date().getTime();
