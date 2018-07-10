@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
 const winston = require('winston');
@@ -24,6 +25,7 @@ const stream = {
   }
 };
 
+const knownEmailsMiddleware = require('./io/know-emails');
 
 const {verifySMTP} = require('./io/mail_transport');
 const redisClient = require('./io/redis_client');
@@ -48,6 +50,8 @@ app.set('trust proxy', config.trustProxy);
 if (process.env.NODE_ENV !== 'production') app.use(morgan('short', {stream}));
 
 app.use(express.static('public'));
+app.use(cookieParser(config.cookieSecret));
+app.use(knownEmailsMiddleware({secure: process.env.NODE_ENV === 'production'}));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(session({
   store: sessionStore,

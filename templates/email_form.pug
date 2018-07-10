@@ -6,9 +6,24 @@ block head
 block content
   h1 Formulaire de connexion
   form(method='POST' action='email')
+    if knownEmails.length
+      div
+        label
+          | Je me connecte avec une adresse précédemment utilisée
+          |
+          small
+            | (
+            a(href="oublier_emails") oublier ces adresses
+            | )
+        div
+          each email in knownEmails
+            button(type="submit" class="btn btn-default" name="knownEmail" value=email)= email
     div(class=error ? "form-group has-error" : "form-group")
-      label(for="email") Votre adresse email
-      input(type="email" class="form-control" id="email" name="email" placeholder=previousEmail required)
+      if knownEmails.length
+        label(for="email") Je me connecte avec une autre adresse
+      else
+        label(for="email") Votre adresse email
+      input(type="email" class="form-control" id="email" name="email" placeholder=previousEmail)
       if error
         span(class="help-block")= error
     button(type="submit" class="btn btn-primary") Valider

@@ -52,6 +52,8 @@ passport.use('mail_code', new LocalStrategy(
         await user.save();
       }
 
+      req.addKnownEmail(user.emails[0].address);
+
       return cb(null, user, {direct: true});
     } catch (err) {
       return cb(err);

@@ -15,6 +15,7 @@ router.get('/', pages.root);
 router.route('/email')
   .get(pages.showForm)
   .post(pages.validateForm);
+router.get('/oublier_emails', pages.forgetKnownEmails);
 router.get('/email_envoye', pages.emailSent);
 
 // authentication routes
