@@ -38,7 +38,7 @@ exports.validateForm = async function validateForm(req, res, next) {
     }
 
     req.session.userId = user._id;
-    req.session.csrf = uuid();
+    if (!req.session.csrf) req.session.csrf = uuid();
 
     const allowedToSend = await loginTokenBucket.checkIfAllowed(user._id);
 

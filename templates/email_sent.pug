@@ -15,7 +15,7 @@ block content
       div(class=error ? "form-group has-error" : "form-group")
         label(for="password") Code de connexion&nbsp;:
         .input-group
-          input(type="text" class="form-control input-lg text-center" name="password")
+          input(type="text" class="form-control input-lg text-center" id="password" name="password")
           .input-group-btn
             button(type="submit" class="btn btn-lg btn-primary") Se connecter
         if error
