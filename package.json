@@ -16,6 +16,7 @@
     "body-parser": "^1.18.2",
     "connect-ensure-login": "^0.1.1",
     "connect-redis": "^3.3.3",
+    "cookie-parser": "^1.4.3",
     "cors": "^2.8.4",
     "express": "^4.16.3",
     "express-session": "^1.15.6",
@@ -40,6 +41,6 @@
     "yn": "^2.0.0"
   },
   "devDependencies": {
-    "eslint": "^4.19.1"
+    "eslint": "^5.1.0"
   }
 }

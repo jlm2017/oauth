@@ -14,16 +14,22 @@ exports.showForm = function showForm(req, res) {
   res.render('email_form', {
     action: 'email',
     previousEmail: '',
+    knownEmails: req.knownEmails
   });
 };
 
 exports.validateForm = async function validateForm(req, res, next) {
-  const {email} = req.body;
+  let {email, knownEmail} = req.body;
+
+  if (knownEmail) {
+    email = knownEmail;
+  }
 
   if (!email) {
     res.render('email_form', {
       action: 'email',
-      error: 'Le champ email est requis.'
+      error: 'Le champ email est requis.',
+      knownEmails: req.knownEmails
     });
   }
 
@@ -33,7 +39,8 @@ exports.validateForm = async function validateForm(req, res, next) {
     if (user === null) {
       return res.render('email_form', {
         action: 'email',
-        error: 'Votre adresse email n\'est pas trouvée. Etes vous bien signataire ?'
+        error: 'Votre adresse email n\'est pas trouvée. Etes vous bien signataire ?',
+        knownEmails: req.knownEmails
       });
     }
 
@@ -58,6 +65,11 @@ exports.validateForm = async function validateForm(req, res, next) {
   } catch (err) {
     next(err);
   }
+};
+
+exports.forgetKnownEmails = function forgetKnownEmails(req, res) {
+  req.flushKnownEmails();
+  res.redirect('/email');
 };
 
 exports.emailSent = function emailSent(req, res) {
